@@ -1,0 +1,91 @@
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: #f5f7fa;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+.main {
+    padding: 30px 0;
+}
+
+/* HEADER */
+.header {
+    background: linear-gradient(90deg, #061b34, #0a2c52);
+    padding: 14px 0;
+}
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo {
+    height: 36px;
+}
+.logo-wrap {
+    display: flex;
+    align-items: center;
+}
+.brand {
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+.nav a {
+    color: white;
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* CARD */
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+}
+
+/* BUTTON */
+.btn-primary {
+    background: #0077ff;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-primary:hover {
+    background: #005fd1;
+}
+
+/* AMENITIES */
+.amenities span {
+    font-size: 14px;
+    margin-right: 14px;
+    color: #444;
+}
+
+/* FORM */
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 18px;
+    color: #666;
+    font-size: 14px;
+}

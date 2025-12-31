@@ -1,0 +1,26 @@
+{% extends "booking/base.html" %}
+{% block content %}
+
+<div class="card">
+    <h2>Payment</h2>
+
+    <p>Booking ID: {{ booking.id }}</p>
+    <p>Status: {{ booking.status }}</p>
+
+    <h3>Select Payment Method</h3>
+
+    <div class="amenities">
+        <span>📱 UPI</span>
+        <span>💳 Credit Card</span>
+        <span>🏦 Debit Card</span>
+        <span>👛 Wallets</span>
+    </div>
+
+    <br>
+    <form method="post" action="{% url 'payment_success' %}">
+        {% csrf_token %}
+        <button class="btn-primary">Simulate Payment Success</button>
+    </form>
+</div>
+
+{% endblock %}

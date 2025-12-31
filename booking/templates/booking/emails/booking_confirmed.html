@@ -1,0 +1,15 @@
+<h2>Booking Confirmed 🎉</h2>
+
+<p>Hello {{ booking.guest_name }},</p>
+
+<p>Your booking is confirmed.</p>
+
+<ul>
+    <li><strong>Booking ID:</strong> {{ booking.id }}</li>
+    <li><strong>Hotel:</strong> {{ booking.room_type.hotel.name }}</li>
+    <li><strong>Room:</strong> {{ booking.room_type.name }}</li>
+    <li><strong>Check-in:</strong> {{ booking.check_in }}</li>
+    <li><strong>Check-out:</strong> {{ booking.check_out }}</li>
+</ul>
+
+<p>Thank you for choosing GoExplorer.</p>

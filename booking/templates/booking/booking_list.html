@@ -1,0 +1,27 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+<h3>All Bookings</h3>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Guest</th>
+        <th>Hotel</th>
+        <th>Room</th>
+        <th>Dates</th>
+        <th>Status</th>
+    </tr>
+
+    {% for booking in bookings %}
+    <tr>
+        <td>{{ booking.id }}</td>
+        <td>{{ booking.guest_name }}</td>
+        <td>{{ booking.room_type.hotel.name }}</td>
+        <td>{{ booking.room_type.name }}</td>
+        <td>{{ booking.check_in }} → {{ booking.check_out }}</td>
+        <td>{{ booking.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

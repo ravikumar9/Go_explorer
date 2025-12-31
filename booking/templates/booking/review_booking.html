@@ -1,0 +1,41 @@
+{% extends "booking/base.html" %}
+{% block content %}
+
+<div class="card">
+    <h2>Review Booking</h2>
+
+    <p><b>Hotel:</b> {{ hotel.name }}</p>
+    <p><b>Room:</b> {{ room.name }}</p>
+
+    <hr>
+
+    <p>Base Fare: ₹ {{ base_fare }}</p>
+    <p>GST (18%): ₹ {{ gst }}</p>
+    <h3>Total: ₹ {{ total }}</h3>
+
+    <form method="post" action="{% url 'create_booking' %}">
+        {% csrf_token %}
+        <input type="hidden" name="hotel_id" value="{{ hotel.id }}">
+        <input type="hidden" name="room_type_id" value="{{ room.id }}">
+        <input type="hidden" name="check_in" value="{{ check_in }}">
+        <input type="hidden" name="check_out" value="{{ check_out }}">
+
+        <div class="row">
+            <input name="first_name" placeholder="First Name" required>
+            <input name="last_name" placeholder="Last Name" required>
+        </div>
+
+        <div class="row">
+            <input name="email" placeholder="Email" required>
+            <input name="phone" placeholder="Mobile Number" required>
+        </div>
+
+        <label class="checkbox">
+            <input type="checkbox" required> I agree to Terms & Conditions
+        </label>
+
+        <button class="btn-primary">Proceed to Payment</button>
+    </form>
+</div>
+
+{% endblock %}

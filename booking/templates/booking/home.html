@@ -1,0 +1,22 @@
+{% extends "booking/base.html" %}
+{% block content %}
+
+<h1>Book Hotels & Stays</h1>
+
+<form method="get" action="{% url 'hotels_list' %}" class="card">
+    <input name="city" placeholder="City" required>
+
+    <input type="date" name="check_in" required>
+    <input type="date" name="check_out" required>
+
+    <select name="guests">
+        <option>2 Adults</option>
+        <option>3 Adults</option>
+        <option>4 Adults</option>
+    </select>
+
+    <br><br>
+    <button class="btn-primary">Search</button>
+</form>
+
+{% endblock %}

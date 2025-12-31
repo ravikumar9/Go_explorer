@@ -1,0 +1,23 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+<h3>Room Availability</h3>
+
+<table>
+    <tr>
+        <th>Hotel</th>
+        <th>Room</th>
+        <th>Date</th>
+        <th>Available Rooms</th>
+    </tr>
+
+    {% for a in availability %}
+    <tr>
+        <td>{{ a.room_type.hotel.name }}</td>
+        <td>{{ a.room_type.name }}</td>
+        <td>{{ a.date }}</td>
+        <td>{{ a.available_rooms }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

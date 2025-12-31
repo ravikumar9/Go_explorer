@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoExplorer</title>
+    <link rel="stylesheet" href="{% static 'booking/css/main.css' %}">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo-wrap">
+            <img src="{% static 'booking/images/logo.png' %}" class="logo">
+            <span class="brand">GoExplorer</span>
+        </div>
+
+        <nav class="nav">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'hotels_list' %}?city=Bangalore">Hotels</a>
+
+            <a href="/admin/">Admin</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    © GoExplorer. Every journey deserves a place for memories.
+</footer>
+
+</body>
+</html>

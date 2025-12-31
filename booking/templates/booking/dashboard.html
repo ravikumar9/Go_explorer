@@ -1,0 +1,12 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+<h3>Dashboard</h3>
+
+<ul>
+    <li>Total Bookings: {{ total_bookings }}</li>
+    <li>Confirmed: {{ confirmed }}</li>
+    <li>Pending Payment: {{ pending }}</li>
+    <li>Cancelled: {{ cancelled }}</li>
+</ul>
+{% endblock %}

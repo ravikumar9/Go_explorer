@@ -1,0 +1,17 @@
+{% extends "booking/base.html" %}
+{% block content %}
+
+<div class="card">
+    <h2>Booking Confirmed 🎉</h2>
+
+    <p>Your booking ID is <strong>{{ booking_id }}</strong></p>
+
+    <p style="margin-top:15px;">
+        Thank you for choosing <strong>GoExplorer</strong>.
+        We wish you a comfortable and memorable stay 🌍
+    </p>
+
+    <a class="btn-primary" href="/">Go to Home</a>
+</div>
+
+{% endblock %}

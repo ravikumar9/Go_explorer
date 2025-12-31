@@ -1,0 +1,33 @@
+{% extends "booking/base.html" %}
+{% block content %}
+
+<h1>Hotels</h1>
+
+{% for hotel in hotels %}
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+        <div>
+            <h3>{{ hotel.name }}</h3>
+            <p>{{ hotel.city }}</p>
+
+            <div class="amenities">
+                <span>🌿 Nature View</span>
+                <span>🅿 Parking</span>
+                <span>📶 WiFi</span>
+            </div>
+        </div>
+
+        <div style="text-align:right">
+            <p><strong>₹ {{ hotel.starting_price }}</strong> / night</p>
+            <a class="btn-primary"
+               href="{% url 'room_list' hotel.id %}?check_in={{ check_in }}&check_out={{ check_out }}">
+                View Rooms
+            </a>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p>No hotels found.</p>
+{% endfor %}
+
+{% endblock %}
