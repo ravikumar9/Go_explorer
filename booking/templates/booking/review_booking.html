@@ -2,6 +2,7 @@
 {% block content %}
 
 <div class="card">
+
     <h2>Review Booking</h2>
 
     <p><b>Hotel:</b> {{ hotel.name }}</p>
@@ -15,10 +16,12 @@
 
     <form method="post" action="{% url 'create_booking' %}">
         {% csrf_token %}
-        <input type="hidden" name="hotel_id" value="{{ hotel.id }}">
+
+        <!-- REQUIRED FOR BACKEND -->
         <input type="hidden" name="room_type_id" value="{{ room.id }}">
         <input type="hidden" name="check_in" value="{{ check_in }}">
         <input type="hidden" name="check_out" value="{{ check_out }}">
+        <input type="hidden" name="total" value="{{ total }}">
 
         <div class="row">
             <input name="first_name" placeholder="First Name" required>
@@ -30,11 +33,15 @@
             <input name="phone" placeholder="Mobile Number" required>
         </div>
 
-        <label class="checkbox">
-            <input type="checkbox" required> I agree to Terms & Conditions
-        </label>
+        <div class="row checkbox-row">
+            <label>
+                <input type="checkbox" required>
+                I agree to Terms & Conditions
+            </label>
+        </div>
 
         <button class="btn-primary">Proceed to Payment</button>
+
     </form>
 </div>
 

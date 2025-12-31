@@ -4,6 +4,7 @@ import hmac
 import hashlib
 
 from datetime import datetime, timedelta
+from rest_framework.permissions import AllowAny
 
 from django.http import JsonResponse
 from django.db import transaction
@@ -18,6 +19,9 @@ from .models import Hotel, RoomType, Booking, Availability, Payment
 from .serializers import BookingCreateSerializer
 from .razorpay_client import client
 from django.conf import settings
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 # =====================================================
@@ -126,6 +130,7 @@ def create_booking(request):
         guest_name=guest_name,
         check_in=check_in,
         check_out=check_out,
+        amount=room_type.price,
         status="PENDING_PAYMENT"
     )
 
@@ -268,6 +273,7 @@ def drf_create_booking(request):
             guest_name=data["guest_name"],
             check_in=data["check_in"],
             check_out=data["check_out"],
+            amount=room_type.price,
             status="PENDING_PAYMENT"
         )
 
@@ -415,13 +421,9 @@ def refund_payment(request):
 
     return Response({"status": "REFUND_INITIATED"})
 
-
-client = razorpay.Client(
-    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-)
-
+@csrf_exempt
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @transaction.atomic
 def razorpay_create_order(request):
 
@@ -431,8 +433,24 @@ def razorpay_create_order(request):
     if booking.status != "PENDING_PAYMENT":
         return Response({"error": "Invalid state"}, status=400)
 
+    if not booking.amount:
+        return Response({"error": "Booking amount missing"}, status=400)
+
+    payment = Payment.objects.filter(
+        booking=booking,
+        status="INITIATED"
+    ).first()
+
+    if payment:
+        return Response({
+            "order_id": payment.razorpay_order_id,
+            "key": settings.RAZORPAY_KEY_ID,
+            "amount": int(booking.amount * 100),
+            "currency": "INR"
+        })
+
     order = client.order.create({
-        "amount": int(booking.room_type.price * 100),  # paise
+        "amount": int(booking.amount * 100),
         "currency": "INR",
         "receipt": f"booking_{booking.id}",
         "payment_capture": 1
@@ -440,7 +458,7 @@ def razorpay_create_order(request):
 
     Payment.objects.create(
         booking=booking,
-        idempotency_key=order["id"],
+        razorpay_order_id=order["id"],
         status="INITIATED"
     )
 
@@ -452,8 +470,9 @@ def razorpay_create_order(request):
     })
 
 
+
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @transaction.atomic
 def razorpay_verify_payment(request):
 
@@ -486,3 +505,4 @@ def razorpay_webhook(request):
         Booking.objects.filter(id=booking_id).update(status="PAYMENT_FAILED")
 
     return Response({"status": "ok"})
+

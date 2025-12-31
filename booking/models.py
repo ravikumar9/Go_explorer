@@ -46,9 +46,15 @@ class Booking(models.Model):
     check_out = models.DateField()
     guest_name = models.CharField(max_length=100)
 
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
     # ✅ FIX HERE
     guest_email = models.EmailField(null=True, blank=True)
     guest_phone = models.CharField(max_length=15, blank=True, null=True)
+    payment_method = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
 
     status = models.CharField(
         max_length=20,

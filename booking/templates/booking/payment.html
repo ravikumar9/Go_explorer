@@ -1,26 +1,147 @@
-{% extends "booking/base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment | GoExplorer</title>
 
-<div class="card">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .container {
+            width: 420px;
+            margin: 80px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #0d6efd;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .btn:disabled {
+            background: #9bbcf7;
+            cursor: not-allowed;
+        }
+        .info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
     <h2>Payment</h2>
 
-    <p>Booking ID: {{ booking.id }}</p>
-    <p>Status: {{ booking.status }}</p>
+    <div class="info"><strong>Booking ID:</strong> {{ booking.id }}</div>
+    <div class="info"><strong>Amount:</strong> ₹{{ booking.amount }}</div>
+    <div class="info"><strong>Status:</strong> {{ booking.status }}</div>
 
-    <h3>Select Payment Method</h3>
-
-    <div class="amenities">
-        <span>📱 UPI</span>
-        <span>💳 Credit Card</span>
-        <span>🏦 Debit Card</span>
-        <span>👛 Wallets</span>
-    </div>
-
-    <br>
-    <form method="post" action="{% url 'payment_success' %}">
-        {% csrf_token %}
-        <button class="btn-primary">Simulate Payment Success</button>
-    </form>
+    <button id="pay-btn" class="btn">
+        Pay with Razorpay
+    </button>
 </div>
 
-{% endblock %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    // Prevent browser back navigation (real-world behavior)
+    history.pushState(null, "", location.href);
+    window.onpopstate = function () {
+        history.pushState(null, "", location.href);
+    };
+
+    const payBtn = document.getElementById("pay-btn");
+
+    payBtn.addEventListener("click", async function () {
+
+        payBtn.disabled = true;
+        payBtn.innerText = "Processing...";
+
+        try {
+            // 1️⃣ Create Razorpay Order
+            const response = await fetch("/api/payment/create-order/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    booking_id: {{ booking.id }}
+                })
+            });
+
+            const data = await response.json();
+
+            // 🔍 DEBUG LOG (IMPORTANT)
+            console.log("Create order response:", data);
+
+            if (!data.order_id) {
+                alert("Payment initialization failed");
+                payBtn.disabled = false;
+                payBtn.innerText = "Pay with Razorpay";
+                return;
+            }
+
+            // 2️⃣ Razorpay Checkout Options
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency,
+                name: "GoExplorer",
+                description: "Hotel Booking Payment",
+                order_id: data.order_id,
+
+                handler: async function (response) {
+
+                    // 3️⃣ Verify Payment
+                    await fetch("/api/payment/verify/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            booking_id: {{ booking.id }},
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+
+                    // 4️⃣ Redirect to success
+                    window.location.href = "/payment/success/";
+                },
+
+                modal: {
+                    ondismiss: function () {
+                        payBtn.disabled = false;
+                        payBtn.innerText = "Pay with Razorpay";
+                    }
+                },
+
+                theme: {
+                    color: "#0d6efd"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+
+        } catch (error) {
+            console.error("Payment error:", error);
+            alert("Payment initialization failed");
+            payBtn.disabled = false;
+            payBtn.innerText = "Pay with Razorpay";
+        }
+    });
+</script>
+
+</body>
+</html>

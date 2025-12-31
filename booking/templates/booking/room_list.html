@@ -1,28 +1,25 @@
 {% extends "booking/base.html" %}
 {% block content %}
 
-<h1>Rooms</h1>
+<h1>Rooms – {{ hotel.name }}</h1>
 
 {% for room in rooms %}
-<div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center">
-        <div>
-            <h3>{{ room.name }}</h3>
-
-            <div class="amenities">
-                <span>🛏 King Bed</span>
-                <span>❄ AC</span>
-                <span>🚿 Hot Water</span>
-            </div>
+<div class="card room-card">
+    <div class="room-left">
+        <h3>{{ room.name }}</h3>
+        <div class="amenities">
+            <span>🛏 King Bed</span>
+            <span>❄ AC</span>
+            <span>🚿 Hot Water</span>
         </div>
+    </div>
 
-        <div style="text-align:right">
-            <p><strong>₹ {{ room.price }}</strong> / night</p>
-            <a class="btn-primary"
-               href="{% url 'review_booking' %}?room_type_id={{ room.id }}&check_in={{ check_in }}&check_out={{ check_out }}">
-                Select Room
-            </a>
-        </div>
+    <div class="room-right">
+        <p class="price">₹ {{ room.price }} <span>/ night</span></p>
+        <a class="btn-primary"
+           href="{% url 'review_booking' %}?room_type_id={{ room.id }}&check_in={{ check_in }}&check_out={{ check_out }}">
+            Select Room
+        </a>
     </div>
 </div>
 {% endfor %}
