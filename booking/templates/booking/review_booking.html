@@ -3,62 +3,113 @@
 
 <div class="card review-card">
 
-    <h2>Review Booking</h2>
+    <h2 class="review-title">Review Booking</h2>
 
-    <p><b>Hotel:</b> {{ hotel.name }}</p>
-    <p><b>Room:</b> {{ plan.room_type.name }}</p>
-    <p><b>Plan:</b> {{ plan.get_plan_type_display }}</p>
+    <div class="review-grid">
+        <div class="review-left">
+            <p><strong>Hotel:</strong> {{ hotel.name }}</p>
+            <p><strong>Room:</strong> {{ plan.room_type.name }}</p>
+            <p><strong>Plan:</strong> {{ plan.get_plan_type_display }}</p>
 
-    <hr>
+            <hr>
 
-    <p><b>Check-in:</b> {{ check_in }}</p>
-    <p><b>Check-out:</b> {{ check_out }}</p>
-    <p><b>Nights:</b> {{ nights }}</p>
+            <p><strong>Check-in:</strong> {{ check_in }}</p>
+            <p><strong>Check-out:</strong> {{ check_out }}</p>
+            <p><strong>Nights:</strong> {{ nights }}</p>
 
-    <hr>
+            {% if coupons %}
+                <hr>
+                <h4>Available Coupons</h4>
+                <div class="coupons-list">
+                {% for c in coupons %}
+                    <div class="coupon-item">
+                        <strong>{{ c.code }}</strong>
+                        <span class="muted">
+                        {% if c.discount_type == "PERCENT" %}
+                            – {{ c.discount_value }}% OFF
+                        {% else %}
+                            – ₹{{ c.discount_value }} OFF
+                        {% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
 
-    <p>Base Fare: ₹ {{ base_fare }}</p>
-    <p>GST (18%): ₹ {{ gst }}</p>
-    <h3>Total Payable: ₹ {{ total }}</h3>
-
-    {% if coupons %}
-        <hr>
-        <h4>Available Coupons</h4>
-        {% for c in coupons %}
-            <div>
-                <b>{{ c.code }}</b>
-                {% if c.discount_type == "PERCENT" %}
-                    – {{ c.discount_value }}% OFF
-                {% else %}
-                    – ₹{{ c.discount_value }} OFF
-                {% endif %}
+        <div class="review-right">
+            <div class="price-breakdown card">
+                <div class="row"><span>Base Fare</span><span>₹ {{ base_fare }}</span></div>
+                <div class="row"><span>GST (18%)</span><span>₹ {{ gst }}</span></div>
+                <div class="row total"><span>Total Payable</span><span>₹ {{ total }}</span></div>
             </div>
-        {% endfor %}
-    {% endif %}
 
-    <hr>
+            <form method="post" action="{% url 'create_booking' %}" class="booking-form">
+                {% csrf_token %}
+                <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                <input type="hidden" name="check_in" value="{{ check_in }}">
+                <input type="hidden" name="check_out" value="{{ check_out }}">
+                <input type="hidden" name="total" value="{{ total }}">
 
-    <form method="post" action="{% url 'create_booking' %}">
-        {% csrf_token %}
+                <label class="field"><input name="guest_name" placeholder="Full Name *" required></label>
+                <label class="field"><input name="email" placeholder="Email *" required></label>
+                <label class="field"><input name="phone" placeholder="Mobile Number *" required></label>
 
-        <input type="hidden" name="plan_id" value="{{ plan.id }}">
-        <input type="hidden" name="check_in" value="{{ check_in }}">
-        <input type="hidden" name="check_out" value="{{ check_out }}">
-        <input type="hidden" name="total" value="{{ total }}">
+                <label class="field"><input name="coupon_code" placeholder="Coupon Code (optional)"></label>
 
-        <input name="guest_name" placeholder="Full Name *" required>
-        <input name="email" placeholder="Email *" required>
-        <input name="phone" placeholder="Mobile Number *" required>
+                <div class="coupon-action">
+                    <input id="coupon_input" name="coupon_code" placeholder="Coupon Code (optional)">
+                    <button type="button" id="apply_coupon" class="btn-small">Apply</button>
+                    <div id="coupon_message" class="muted" style="margin-top:8px"></div>
+                </div>
 
-        <input name="coupon_code" placeholder="Coupon Code (optional)">
+                <label class="checkbox"><input type="checkbox" required> I agree to Terms & Conditions</label>
 
-        <label>
-            <input type="checkbox" required> I agree to Terms & Conditions
-        </label>
-
-        <button class="btn-primary">Proceed to Payment</button>
-    </form>
+                <button class="btn-primary">Proceed to Payment</button>
+            </form>
+        </div>
+    </div>
 
 </div>
+
+<script>
+(function(){
+    const applyBtn = document.getElementById('apply_coupon');
+    const input = document.getElementById('coupon_input');
+    const msg = document.getElementById('coupon_message');
+    const totalEl = document.querySelector('.price-breakdown .row.total span:last-child');
+    const totalHidden = document.querySelector('input[name="total"]');
+
+    function setMessage(text, err){
+        msg.textContent = text;
+        msg.style.color = err ? 'crimson' : '#374151';
+    }
+
+    applyBtn.addEventListener('click', function(){
+        const code = input.value.trim();
+        if(!code){ setMessage('Enter a coupon code first', true); return; }
+
+        const url = new URL("{% url 'validate_coupon' %}", window.location.origin);
+        url.searchParams.set('code', code);
+        url.searchParams.set('plan_id', '{{ plan.id }}');
+        url.searchParams.set('total', totalHidden.value);
+
+        fetch(url)
+            .then(r => r.json().then(j => ({ok: r.ok, status: r.status, json: j})))
+            .then(({ok, status, json}) => {
+                if(!ok){
+                    if(status === 404) setMessage('Coupon not found or inactive', true);
+                    else setMessage('Invalid coupon or total', true);
+                    return;
+                }
+                // update totals
+                totalEl.textContent = '₹ ' + json.payable;
+                totalHidden.value = json.payable;
+                setMessage('Applied: ' + json.code + ' — Discount ₹' + json.discount, false);
+            })
+            .catch(err => setMessage('Error validating coupon', true));
+    });
+})();
+</script>
 
 {% endblock %}

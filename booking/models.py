@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 # -------------------------
@@ -20,6 +21,14 @@ class Hotel(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def starting_price(self):
+        """Return the minimum room plan price for this hotel (or 0)."""
+        plans = RoomPlan.objects.filter(room_type__hotel=self).order_by("price")
+        if plans.exists():
+            return plans.first().price
+        return 0
+
 
 # -------------------------
 # HOTEL IMAGES
@@ -36,12 +45,18 @@ class HotelImage(models.Model):
     def __str__(self):
         return f"{self.hotel.name} image"
 
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            # unset other primary images for this hotel
+            type(self).objects.filter(hotel=self.hotel, is_primary=True).exclude(pk=self.pk).update(is_primary=False)
+        super().save(*args, **kwargs)
+
 
 # -------------------------
 # AMENITY
 # -------------------------
 class Amenity(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
@@ -53,6 +68,8 @@ class Amenity(models.Model):
 class RoomType(models.Model):
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    # legacy `price` column exists in migrations/DB; keep a mapped field to remain compatible
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, db_column='price')
 
     base_price = models.PositiveIntegerField(default=0)
     room_size_sqft = models.PositiveIntegerField(default=0)
@@ -81,7 +98,7 @@ class RoomPlan(models.Model):
         on_delete=models.CASCADE
     )
     plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES)
-    price = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.room_type} - {self.get_plan_type_display()}"
@@ -96,7 +113,7 @@ class Coupon(models.Model):
         ("FLAT", "Flat Amount"),
     )
 
-    code = models.CharField(max_length=20, unique=True)
+    code = models.CharField(max_length=20)
     hotel = models.ForeignKey(
         Hotel,
         related_name="coupons",
@@ -108,6 +125,11 @@ class Coupon(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.hotel.name}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["hotel", "code"], name="unique_coupon_per_hotel"),
+        ]
 
 
 # -------------------------
@@ -144,3 +166,8 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.guest_name} - {self.room_plan}"
+
+    def clean(self):
+        # Ensure dates are valid
+        if self.check_in and self.check_out and self.check_in >= self.check_out:
+            raise ValidationError("`check_out` must be after `check_in`")
