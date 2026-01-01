@@ -58,9 +58,9 @@
                 <div class="coupon-action">
                     <input id="coupon_input" name="coupon_code" placeholder="Coupon Code (optional)">
                     <button type="button" id="apply_coupon" class="btn-small">Apply</button>
-                    <div id="coupon_spinner" class="spinner" aria-hidden="true" style="display:none;margin-left:8px"></div>
-                    <div id="coupon_message" class="muted" style="margin-top:8px"></div>
-                    <div id="applied_coupon" style="margin-top:10px;display:none">
+                        <div id="coupon_spinner" class="spinner" aria-hidden="true" style="display:none;margin-left:8px"></div>
+                        <div id="coupon_message" class="muted" role="status" aria-live="polite" style="margin-top:8px"></div>
+                        <div id="applied_coupon" role="status" aria-live="polite" style="margin-top:10px;display:none">
                         <span class="badge applied">Applied <strong id="applied_code"></strong> — <span id="applied_discount"></span></span>
                         <button type="button" id="remove_coupon" class="btn-small" style="margin-left:8px">Remove</button>
                     </div>
@@ -68,7 +68,10 @@
 
                 <label class="checkbox"><input type="checkbox" required> I agree to Terms & Conditions</label>
 
-                <button class="btn-primary">Proceed to Payment</button>
+                <button class="btn-primary" id="proceed_btn" aria-live="polite">
+                    <span id="proceed_text">Proceed to Payment</span>
+                    <span id="proceed_spinner" class="btn-spinner" style="display:none;margin-left:8px" aria-hidden="true"></span>
+                </button>
             </form>
         </div>
     </div>
@@ -142,6 +145,24 @@
         appliedBox.style.display = 'none';
         setMessage('Coupon removed', false);
     });
+
+    // Form submit: show loading state on Proceed button for accessibility/feedback
+    const form = document.querySelector('.booking-form');
+    const proceedBtn = document.getElementById('proceed_btn');
+    const proceedText = document.getElementById('proceed_text');
+    const proceedSpinner = document.getElementById('proceed_spinner');
+
+    if(form){
+        form.addEventListener('submit', function(){
+            // disable inputs to avoid double submit
+            proceedBtn.disabled = true;
+            applyBtn.disabled = true;
+            input.disabled = true;
+            // show spinner and update text
+            proceedSpinner.style.display = 'inline-block';
+            proceedText.textContent = 'Processing…';
+        });
+    }
 })();
 </script>
 
