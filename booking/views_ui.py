@@ -3,20 +3,53 @@ from datetime import datetime, date
 from decimal import Decimal
 
 from .models import Hotel, RoomType, RoomPlan, Booking, Coupon
+from django.http import JsonResponse
 
 
 def home(request):
     return render(request, "booking/home.html", {
-        "today": date.today().isoformat()
+        "today": date.today().isoformat(),
+        "city": request.GET.get("city", ""),
+        "check_in": request.GET.get("check_in", ""),
+        "check_out": request.GET.get("check_out", ""),
     })
 
 
 def hotels_list(request):
-    hotels = Hotel.objects.filter(is_active=True)
+    qs = Hotel.objects.filter(is_active=True)
+
+    # Filters
+    selected_city = request.GET.get("city", "")
+    selected_rating = request.GET.get("rating", "")
+    selected_price = request.GET.get("price", "")
+    selected_sort = request.GET.get("sort", "relevance")
+
+    if selected_city:
+        qs = qs.filter(city__icontains=selected_city)
+    if selected_rating:
+        try:
+            qs = qs.filter(rating=int(selected_rating))
+        except ValueError:
+            pass
+
+    hotels = list(qs)
+
+    # Sorting
+    if selected_sort == "price_low":
+        hotels.sort(key=lambda h: float(h.starting_price or 0))
+    elif selected_sort == "price_high":
+        hotels.sort(key=lambda h: float(h.starting_price or 0), reverse=True)
+    elif selected_sort == "rating":
+        hotels.sort(key=lambda h: h.rating, reverse=True)
+
     return render(request, "booking/hotel_list.html", {
         "hotels": hotels,
         "check_in": request.GET.get("check_in"),
         "check_out": request.GET.get("check_out"),
+        "selected_city": selected_city,
+        "selected_rating": selected_rating,
+        "selected_price": selected_price,
+        "selected_sort": selected_sort,
     })
 
 
@@ -104,6 +137,43 @@ def create_booking(request):
     )
 
     return redirect("payment_page", booking_id=booking.id)
+
+
+def validate_coupon(request):
+    code = request.GET.get("code")
+    plan_id = request.GET.get("plan_id")
+    total = request.GET.get("total")
+    try:
+        total = Decimal(total)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "invalid_total"}, status=400)
+
+    try:
+        plan = RoomPlan.objects.get(id=plan_id)
+    except RoomPlan.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "invalid_plan"}, status=400)
+
+    if not code:
+        return JsonResponse({"ok": False, "error": "no_code"}, status=400)
+
+    try:
+        coupon = Coupon.objects.get(code=code, hotel=plan.room_type.hotel, is_active=True)
+    except Coupon.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+
+    if coupon.discount_type == "PERCENT":
+        discount = (total * coupon.discount_value / 100).quantize(Decimal("0.01"))
+    else:
+        discount = Decimal(coupon.discount_value)
+
+    payable = (total - discount).quantize(Decimal("0.01"))
+
+    return JsonResponse({
+        "ok": True,
+        "code": coupon.code,
+        "discount": str(discount),
+        "payable": str(payable),
+    })
 
 
 def payment_page(request, booking_id):

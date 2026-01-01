@@ -34,7 +34,11 @@
 <input type="hidden" name="check_out" value="{{ check_out }}">
 
 <button class="btn-primary btn-small">Apply</button>
-<a href="{% url 'hotels_list' %}" class="btn-small muted">Clear</a>
+{% if check_in and check_out %}
+    <a href="{% url 'hotels_list' %}?check_in={{ check_in }}&check_out={{ check_out }}" class="btn-small muted">Clear</a>
+{% else %}
+    <a href="{% url 'hotels_list' %}" class="btn-small muted">Clear</a>
+{% endif %}
 
 </form>
 </div>

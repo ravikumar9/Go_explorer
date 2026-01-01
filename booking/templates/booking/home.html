@@ -5,13 +5,13 @@
 
 <form method="get" action="{% url 'hotels_list' %}" class="card filter-row">
 
-    <input name="city" placeholder="City" required>
+    <input name="city" placeholder="City" required value="{{ city }}">
 
     <input type="date" name="check_in" id="check_in"
-           min="{{ today }}" required>
+        min="{{ today }}" required value="{{ check_in }}">
 
     <input type="date" name="check_out" id="check_out"
-           min="{{ today }}" required>
+        min="{{ today }}" required value="{{ check_out }}">
 
     <select name="guests">
         <option>2 Adults</option>

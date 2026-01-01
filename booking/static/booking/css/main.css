@@ -308,3 +308,90 @@ body {
     font-weight: 700;
     margin-bottom: 12px;
 }
+
+/* ===== REVIEW BOOKING ===== */
+.review-card {
+    max-width: 980px;
+    margin: 12px auto;
+    padding: 20px;
+}
+
+.review-grid {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+}
+
+.review-left {
+    flex: 1 1 60%;
+}
+
+.review-right {
+    flex: 0 0 340px;
+}
+
+.price-breakdown .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 6px;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.price-breakdown .row.total {
+    font-weight: 700;
+    border-bottom: none;
+    padding-top: 14px;
+}
+
+.booking-form .field input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+.booking-form .checkbox {
+    display: block;
+    margin: 12px 0;
+    color: #374151;
+}
+
+/* Coupon badge + spinner */
+.badge.applied {
+    display: inline-block;
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.08);
+    border-top-color: #0d6efd;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+
+/* Proceed button spinner */
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    .review-grid { flex-direction: column; }
+    .review-right { width: 100%; }
+}
