@@ -106,6 +106,30 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name="RoomPlan",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("plan_type", models.CharField(max_length=20)),
+                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "room_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="plans",
+                        to="booking.roomtype",
+                    ),
+                ),
+            ],
+        ),
+        migrations.CreateModel(
             name="Booking",
             fields=[
                 (
@@ -120,6 +144,20 @@ class Migration(migrations.Migration):
                 ("check_in", models.DateField()),
                 ("check_out", models.DateField()),
                 ("guest_name", models.CharField(max_length=100)),
+                ("guest_email", models.EmailField(max_length=254)),
+                ("guest_phone", models.CharField(max_length=15)),
+                (
+                    "coupon_code",
+                    models.CharField(max_length=20, blank=True, null=True),
+                ),
+                (
+                    "discount_amount",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(decimal_places=2, max_digits=10),
+                ),
                 (
                     "status",
                     models.CharField(
@@ -127,7 +165,6 @@ class Migration(migrations.Migration):
                             ("PENDING_PAYMENT", "Pending Payment"),
                             ("CONFIRMED", "Confirmed"),
                             ("CANCELLED", "Cancelled"),
-                            ("FAILED", "Failed"),
                         ],
                         default="PENDING_PAYMENT",
                         max_length=20,
@@ -135,24 +172,11 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
-                    "room_type",
+                    "room_plan",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="booking.roomtype",
+                        to="booking.roomplan",
                     ),
-                ),
-                (
-                    "guest_email",
-                    models.EmailField(blank=True, max_length=254, null=True),
-                ),
-                ("guest_phone", models.CharField(blank=True, max_length=15, null=True)),
-                (
-                    "amount",
-                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
-                ),
-                (
-                    "payment_method",
-                    models.CharField(blank=True, max_length=20, null=True),
                 ),
             ],
         ),
@@ -190,30 +214,6 @@ class Migration(migrations.Migration):
                 (
                     "razorpay_signature",
                     models.CharField(blank=True, max_length=255, null=True),
-                ),
-            ],
-        ),
-        migrations.CreateModel(
-            name="RoomPlan",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("plan_type", models.CharField(max_length=20)),
-                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
-                (
-                    "room_type",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="plans",
-                        to="booking.roomtype",
-                    ),
                 ),
             ],
         ),

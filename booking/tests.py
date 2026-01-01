@@ -60,3 +60,55 @@ class BookingModelTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             b.full_clean()
+
+
+class EndToEndBookingFlowTests(TestCase):
+    def setUp(self):
+        self.hotel = Hotel.objects.create(name="E2E Hotel", city="CityE", address="", rating=4, is_active=True)
+        self.rt = RoomType.objects.create(hotel=self.hotel, name="Deluxe")
+        self.plan = RoomPlan.objects.create(room_type=self.rt, plan_type="ROOM_ONLY", price=Decimal('100.00'))
+        self.coupon = Coupon.objects.create(code="PERC10", hotel=self.hotel, discount_type="PERCENT", discount_value=10, is_active=True)
+
+    def test_full_booking_flow_with_coupon(self):
+        # Review booking (GET)
+        check_in = date(2026, 6, 1)
+        check_out = date(2026, 6, 3)  # 2 nights
+        url = reverse('review_booking')
+        resp = self.client.get(url, {
+            'plan_id': self.plan.id,
+            'check_in': check_in.isoformat(),
+            'check_out': check_out.isoformat(),
+        })
+        self.assertEqual(resp.status_code, 200)
+
+        # Compute expected totals as view would
+        nights = (check_out - check_in).days
+        base_fare = Decimal(self.plan.price) * nights
+        gst = (base_fare * Decimal('0.18')).quantize(Decimal('0.01'))
+        total = base_fare + gst
+
+        # Create booking (POST) with coupon
+        post_url = reverse('create_booking')
+        data = {
+            'plan_id': str(self.plan.id),
+            'check_in': check_in.isoformat(),
+            'check_out': check_out.isoformat(),
+            'total': str(total),
+            'coupon_code': self.coupon.code,
+            'guest_name': 'Alice',
+            'email': 'alice@example.com',
+            'phone': '9998887777',
+        }
+        resp2 = self.client.post(post_url, data)
+        self.assertEqual(resp2.status_code, 302)
+
+        # Booking created and redirected to payment page
+        booking = Booking.objects.first()
+        self.assertIsNotNone(booking)
+
+        # Validate discount and final amount
+        expected_discount = (total * Decimal(self.coupon.discount_value) / 100).quantize(Decimal('0.01'))
+        expected_payable = (total - expected_discount).quantize(Decimal('0.01'))
+
+        self.assertEqual(booking.discount_amount, expected_discount)
+        self.assertEqual(booking.amount, expected_payable)
