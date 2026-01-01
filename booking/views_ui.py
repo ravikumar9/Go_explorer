@@ -1,139 +1,114 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Hotel, RoomType, Booking
 from datetime import datetime, date
 from decimal import Decimal
-from django.conf import settings
 
-# -------------------------
-# HOME
-# -------------------------
+from .models import Hotel, RoomType, RoomPlan, Booking, Coupon
+
+
 def home(request):
-    today = date.today().isoformat()
     return render(request, "booking/home.html", {
-        "today": today
+        "today": date.today().isoformat()
     })
 
 
-# -------------------------
-# HOTEL LIST
-# -------------------------
 def hotels_list(request):
-    city = request.GET.get("city")
-    check_in = request.GET.get("check_in")
-    check_out = request.GET.get("check_out")
-
-    hotels = Hotel.objects.all()
-    if city:
-        hotels = hotels.filter(city__icontains=city)
-
+    hotels = Hotel.objects.filter(is_active=True)
     return render(request, "booking/hotel_list.html", {
         "hotels": hotels,
-        "check_in": check_in,
-        "check_out": check_out,
-    })
-
-
-# -------------------------
-# ROOMS LIST
-# -------------------------
-def rooms_list(request, hotel_id):
-    hotel = get_object_or_404(Hotel, id=hotel_id)
-    rooms = RoomType.objects.filter(hotel=hotel)
-
-    return render(request, "booking/room_list.html", {
-        "hotel": hotel,
-        "rooms": rooms,
         "check_in": request.GET.get("check_in"),
         "check_out": request.GET.get("check_out"),
     })
 
 
-# -------------------------
-# REVIEW BOOKING (SAFE FIX)
-# -------------------------
-def review_booking(request):
-    room_id = request.GET.get("room_type_id")
-    check_in_raw = request.GET.get("check_in")
-    check_out_raw = request.GET.get("check_out")
-
-    if not (room_id and check_in_raw and check_out_raw):
-        return redirect("home")
-
-    room = get_object_or_404(RoomType, id=room_id)
-
-    # SAFE date parsing
-    check_in = datetime.strptime(check_in_raw, "%Y-%m-%d").date()
-    check_out = datetime.strptime(check_out_raw, "%Y-%m-%d").date()
-
-    nights = (check_out - check_in).days
-    nights = max(nights, 1)
-
-    base_fare = Decimal(room.price) * nights
-    gst = (base_fare * Decimal("0.18")).quantize(Decimal("0.01"))
-    total = base_fare + gst
-
-    return render(request, "booking/review_booking.html", {
-        "room": room,
-        "hotel": room.hotel,
-        "check_in": check_in,
-        "check_out": check_out,
-        "base_fare": base_fare,
-        "gst": gst,
-        "total": total,
-        "nights": nights,
+def rooms_list(request, hotel_id):
+    hotel = get_object_or_404(Hotel, id=hotel_id)
+    return render(request, "booking/room_list.html", {
+        "hotel": hotel,
+        "rooms": RoomType.objects.filter(hotel=hotel),
+        "images": hotel.images.all(),
+        "check_in": request.GET.get("check_in"),
+        "check_out": request.GET.get("check_out"),
     })
 
 
-# -------------------------
-# CREATE BOOKING (NO CRASH)
-# -------------------------
+def review_booking(request):
+    plan = get_object_or_404(RoomPlan, id=request.GET["plan_id"])
+
+    check_in = request.GET["check_in"]
+    check_out = request.GET["check_out"]
+
+    check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
+    check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
+
+    nights = (check_out_date - check_in_date).days
+
+    base_fare = Decimal(plan.price) * nights
+    gst = (base_fare * Decimal("0.18")).quantize(Decimal("0.01"))
+    total = base_fare + gst
+
+    coupons = Coupon.objects.filter(
+        hotel=plan.room_type.hotel,
+        is_active=True
+    )
+
+    return render(request, "booking/review_booking.html", {
+        "plan": plan,
+        "hotel": plan.room_type.hotel,
+        "check_in": check_in,
+        "check_out": check_out,
+        "nights": nights,
+        "base_fare": base_fare,
+        "gst": gst,
+        "total": total,
+        "coupons": coupons,
+    })
+
+
 def create_booking(request):
     if request.method != "POST":
         return redirect("home")
 
-    # ---- SAFE DATE PARSING ----
-    check_in_raw = request.POST.get("check_in")
-    check_out_raw = request.POST.get("check_out")
+    plan = get_object_or_404(RoomPlan, id=request.POST["plan_id"])
 
-    try:
-        check_in = datetime.strptime(check_in_raw, "%Y-%m-%d").date()
-        check_out = datetime.strptime(check_out_raw, "%Y-%m-%d").date()
-    except ValueError:
-        check_in = datetime.strptime(check_in_raw, "%b. %d, %Y").date()
-        check_out = datetime.strptime(check_out_raw, "%b. %d, %Y").date()
+    check_in = datetime.strptime(request.POST["check_in"], "%Y-%m-%d").date()
+    check_out = datetime.strptime(request.POST["check_out"], "%Y-%m-%d").date()
+
+    total = Decimal(request.POST["total"])
+    coupon_code = request.POST.get("coupon_code")
+    discount = Decimal("0")
+
+    if coupon_code:
+        try:
+            coupon = Coupon.objects.get(
+                code=coupon_code,
+                hotel=plan.room_type.hotel,
+                is_active=True
+            )
+            if coupon.discount_type == "PERCENT":
+                discount = (total * coupon.discount_value / 100).quantize(Decimal("0.01"))
+            else:
+                discount = Decimal(coupon.discount_value)
+        except Coupon.DoesNotExist:
+            pass
 
     booking = Booking.objects.create(
-        guest_name=f"{request.POST.get('first_name')} {request.POST.get('last_name')}",
-        guest_email=request.POST.get("email"),
-        guest_phone=request.POST.get("phone"),
-        room_type_id=request.POST.get("room_type_id"),
-
+        room_plan=plan,
+        guest_name=request.POST["guest_name"],
+        guest_email=request.POST["email"],
+        guest_phone=request.POST["phone"],
         check_in=check_in,
         check_out=check_out,
-
-        amount=Decimal(request.POST.get("total")),
-
-        # ✅ THIS IS THE CRITICAL FIX
-        status="PENDING_PAYMENT"
+        coupon_code=coupon_code,
+        discount_amount=discount,
+        amount=total - discount,
     )
 
     return redirect("payment_page", booking_id=booking.id)
 
 
-# -------------------------
-# PAYMENT
-# -------------------------
 def payment_page(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
-
-    # 🚫 BLOCK invalid states
-    if booking.status != "PENDING_PAYMENT":
-        return redirect("home")   # or booking details page
-
-    return render(request, "booking/payment.html", {
-        "booking": booking,
-        "RAZORPAY_KEY_ID": settings.RAZORPAY_KEY_ID
-    })
+    return render(request, "booking/payment.html", {"booking": booking})
 
 
 def payment_success(request):

@@ -133,3 +133,9 @@ RAZORPAY_KEY_SECRET = "xxxxxxxxxxxxxxxx"
 
 RAZORPAY_WEBHOOK_SECRET = "whsec_xxxxxxxx"
 
+# ==============================
+# MEDIA (LOCAL STORAGE – DEV)
+# ==============================
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+

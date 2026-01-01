@@ -3,19 +3,15 @@
 
 <h1>Book Hotels & Stays</h1>
 
-<form method="get" action="{% url 'hotels_list' %}" class="card">
+<form method="get" action="{% url 'hotels_list' %}" class="card filter-row">
 
     <input name="city" placeholder="City" required>
 
-    <input type="date"
-           name="check_in"
-           min="{{ today }}"
-           required>
+    <input type="date" name="check_in" id="check_in"
+           min="{{ today }}" required>
 
-    <input type="date"
-           name="check_out"
-           min="{{ today }}"
-           required>
+    <input type="date" name="check_out" id="check_out"
+           min="{{ today }}" required>
 
     <select name="guests">
         <option>2 Adults</option>
@@ -23,8 +19,16 @@
         <option>4 Adults</option>
     </select>
 
-    <br>
     <button class="btn-primary">Search</button>
 </form>
+
+<script>
+const checkIn = document.getElementById("check_in");
+const checkOut = document.getElementById("check_out");
+
+checkIn.addEventListener("change", () => {
+    checkOut.min = checkIn.value;
+});
+</script>
 
 {% endblock %}

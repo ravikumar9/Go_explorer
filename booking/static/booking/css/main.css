@@ -11,6 +11,7 @@
 body {
     background: #f6f7f9;
     color: #1f2937;
+    line-height: 1.5;
 }
 
 /* =========================
@@ -22,8 +23,9 @@ body {
 }
 
 .header-inner {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: auto;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -48,7 +50,7 @@ body {
 .nav a {
     color: #e5e7eb;
     text-decoration: none;
-    margin-left: 20px;
+    margin-left: 22px;
     font-weight: 500;
 }
 
@@ -60,8 +62,8 @@ body {
    PAGE CONTAINER
 ========================= */
 .container {
-    max-width: 1100px;
-    margin: 40px auto;
+    max-width: 1200px;
+    margin: 28px auto;
     padding: 0 20px;
 }
 
@@ -71,39 +73,50 @@ body {
 .card {
     background: #fff;
     border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 /* =========================
-   FORMS
+   FILTER BAR (COMPACT & RESPONSIVE)
 ========================= */
-input,
-select {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-    font-size: 15px;
-    margin-bottom: 16px;
+.filter-bar {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 26px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
-input:focus,
-select:focus {
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Dropdowns – compact */
+.filter-row select {
+    width: auto;
+    min-width: 160px;
+    padding: 9px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+}
+
+.filter-row select:focus {
     outline: none;
     border-color: #2563eb;
 }
 
-/* Row inputs (First + Last name etc) */
-.row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.row input {
-    margin-bottom: 0;
+/* Apply button */
+.filter-row .btn-primary {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 10px;
 }
 
 /* =========================
@@ -120,10 +133,17 @@ select:focus {
     display: inline-block;
     text-decoration: none;
     font-weight: 600;
+    transition: background 0.2s ease;
 }
 
 .btn-primary:hover {
     background: #0b5ed7;
+}
+
+.btn-small {
+    padding: 10px 18px;
+    font-size: 14px;
+    border-radius: 8px;
 }
 
 /* =========================
@@ -137,35 +157,43 @@ select:focus {
 }
 
 .hotel-left h3 {
+    font-size: 18px;
     margin-bottom: 4px;
 }
 
 .hotel-left p {
     color: #6b7280;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    font-size: 14px;
 }
 
-.amenities {
-    display: flex;
-    gap: 16px;
-    font-size: 14px;
+.room-size {
+    font-size: 13px;
     color: #374151;
 }
 
-/* Right side price + button */
 .hotel-right {
     text-align: right;
-    min-width: 160px;
+    min-width: 180px;
 }
 
-.hotel-right p {
+.hotel-right .price {
     font-size: 18px;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+}
+
+.hotel-right .price span {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.muted {
+    color: #9ca3af;
 }
 
 /* =========================
-   ROOMS
+   ROOMS LIST
 ========================= */
 .room-card {
     display: flex;
@@ -173,28 +201,8 @@ select:focus {
     align-items: center;
 }
 
-/* =========================
-   REVIEW BOOKING
-========================= */
-.review-summary p {
+.room-card h4 {
     margin-bottom: 6px;
-}
-
-.review-summary h3 {
-    margin-top: 10px;
-}
-
-/* Checkbox + button alignment */
-.checkbox-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 18px 0;
-}
-
-.checkbox-row input {
-    width: auto;
-    margin: 0;
 }
 
 /* =========================
@@ -202,7 +210,101 @@ select:focus {
 ========================= */
 .footer {
     text-align: center;
-    padding: 30px 0;
+    padding: 26px 0;
     font-size: 14px;
     color: #6b7280;
+}
+
+/* =========================
+   RESPONSIVE (MOBILE)
+========================= */
+@media (max-width: 768px) {
+
+    .hotel-card,
+    .room-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hotel-right {
+        text-align: left;
+        margin-top: 12px;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-row select,
+    .filter-row button {
+        width: 100%;
+    }
+}
+
+/* ===== Compact filter bar ===== */
+.filter-bar {
+    padding: 14px 16px;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-row select {
+    width: auto;
+    min-width: 160px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.filter-row button,
+.filter-row a {
+    margin-top: 0;
+}
+
+/* ===== IMAGE SLIDER ===== */
+
+.image-slider {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    margin: 20px 0;
+    padding-bottom: 10px;
+}
+
+.hotel-img {
+    width: 320px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+
+/* ===== ROOM CARD ===== */
+
+.room-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.room-left {
+    max-width: 70%;
+}
+
+.room-right {
+    text-align: right;
+    min-width: 180px;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
 }

@@ -1,31 +1,58 @@
 {% extends "booking/base.html" %}
 {% block content %}
 
-<h1>Hotels</h1>
+<div class="card filter-bar">
+<form method="get" class="filter-row">
+
+<input name="city" placeholder="City"
+       value="{{ selected_city }}">
+
+<select name="rating">
+    <option value="">Any Star</option>
+    <option value="3" {% if selected_rating == "3" %}selected{% endif %}>3 Star</option>
+    <option value="4" {% if selected_rating == "4" %}selected{% endif %}>4 Star</option>
+    <option value="5" {% if selected_rating == "5" %}selected{% endif %}>5 Star</option>
+</select>
+
+<select name="price">
+    <option value="">Any Price</option>
+    <option value="low" {% if selected_price == "low" %}selected{% endif %}>Below ₹2000</option>
+    <option value="mid" {% if selected_price == "mid" %}selected{% endif %}>₹2000–₹4000</option>
+    <option value="high" {% if selected_price == "high" %}selected{% endif %}>Above ₹4000</option>
+</select>
+
+<select name="sort">
+    <option value="relevance" {% if selected_sort == "relevance" %}selected{% endif %}>
+        GoExplorer Recommended
+    </option>
+    <option value="price_low" {% if selected_sort == "price_low" %}selected{% endif %}>Price: Low → High</option>
+    <option value="price_high" {% if selected_sort == "price_high" %}selected{% endif %}>Price: High → Low</option>
+    <option value="rating" {% if selected_sort == "rating" %}selected{% endif %}>Rating</option>
+</select>
+
+<input type="hidden" name="check_in" value="{{ check_in }}">
+<input type="hidden" name="check_out" value="{{ check_out }}">
+
+<button class="btn-primary btn-small">Apply</button>
+<a href="{% url 'hotels_list' %}" class="btn-small muted">Clear</a>
+
+</form>
+</div>
 
 {% for hotel in hotels %}
 <div class="card hotel-card">
-    <div class="hotel-left">
+    <div>
         <h3>{{ hotel.name }}</h3>
-        <p>{{ hotel.city }}</p>
-
-        <div class="amenities">
-            <span>🌿 Nature View</span>
-            <span>🅿 Parking</span>
-            <span>📶 WiFi</span>
-        </div>
+        <p>{{ hotel.city }} • {{ hotel.rating }} Star</p>
+        <p>Starting from ₹{{ hotel.starting_price }} / night</p>
     </div>
-
-    <div class="hotel-right">
-        <p class="price">₹ {{ hotel.starting_price }} <span>/ night</span></p>
-        <a class="btn-primary"
-           href="{% url 'rooms_list' hotel.id %}?check_in={{ check_in }}&check_out={{ check_out }}">
-            View Rooms
-        </a>
-    </div>
+    <a class="btn-primary"
+       href="{% url 'rooms_list' hotel.id %}?check_in={{ check_in }}&check_out={{ check_out }}">
+       View Rooms
+    </a>
 </div>
 {% empty %}
-<p>No hotels found.</p>
+<div class="card">No hotels found.</div>
 {% endfor %}
 
 {% endblock %}

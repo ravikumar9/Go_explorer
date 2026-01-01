@@ -1,48 +1,64 @@
 {% extends "booking/base.html" %}
 {% block content %}
 
-<div class="card">
+<div class="card review-card">
 
     <h2>Review Booking</h2>
 
     <p><b>Hotel:</b> {{ hotel.name }}</p>
-    <p><b>Room:</b> {{ room.name }}</p>
+    <p><b>Room:</b> {{ plan.room_type.name }}</p>
+    <p><b>Plan:</b> {{ plan.get_plan_type_display }}</p>
+
+    <hr>
+
+    <p><b>Check-in:</b> {{ check_in }}</p>
+    <p><b>Check-out:</b> {{ check_out }}</p>
+    <p><b>Nights:</b> {{ nights }}</p>
 
     <hr>
 
     <p>Base Fare: ₹ {{ base_fare }}</p>
     <p>GST (18%): ₹ {{ gst }}</p>
-    <h3>Total: ₹ {{ total }}</h3>
+    <h3>Total Payable: ₹ {{ total }}</h3>
+
+    {% if coupons %}
+        <hr>
+        <h4>Available Coupons</h4>
+        {% for c in coupons %}
+            <div>
+                <b>{{ c.code }}</b>
+                {% if c.discount_type == "PERCENT" %}
+                    – {{ c.discount_value }}% OFF
+                {% else %}
+                    – ₹{{ c.discount_value }} OFF
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <hr>
 
     <form method="post" action="{% url 'create_booking' %}">
         {% csrf_token %}
 
-        <!-- REQUIRED FOR BACKEND -->
-        <input type="hidden" name="room_type_id" value="{{ room.id }}">
+        <input type="hidden" name="plan_id" value="{{ plan.id }}">
         <input type="hidden" name="check_in" value="{{ check_in }}">
         <input type="hidden" name="check_out" value="{{ check_out }}">
         <input type="hidden" name="total" value="{{ total }}">
 
-        <div class="row">
-            <input name="first_name" placeholder="First Name" required>
-            <input name="last_name" placeholder="Last Name" required>
-        </div>
+        <input name="guest_name" placeholder="Full Name *" required>
+        <input name="email" placeholder="Email *" required>
+        <input name="phone" placeholder="Mobile Number *" required>
 
-        <div class="row">
-            <input name="email" placeholder="Email" required>
-            <input name="phone" placeholder="Mobile Number" required>
-        </div>
+        <input name="coupon_code" placeholder="Coupon Code (optional)">
 
-        <div class="row checkbox-row">
-            <label>
-                <input type="checkbox" required>
-                I agree to Terms & Conditions
-            </label>
-        </div>
+        <label>
+            <input type="checkbox" required> I agree to Terms & Conditions
+        </label>
 
         <button class="btn-primary">Proceed to Payment</button>
-
     </form>
+
 </div>
 
 {% endblock %}
