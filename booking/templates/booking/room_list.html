@@ -3,44 +3,61 @@
 
 <h1>Rooms – {{ hotel.name }}</h1>
 
-<!-- IMAGE SLIDER -->
-<div class="image-slider">
+<!-- THUMBNAIL STRIP (primary gallery control). Large slider hidden by CSS. -->
+{% if images %}
+<div class="thumb-strip" aria-hidden="false">
     {% for img in images %}
-        <img src="{{ img.image.url }}" alt="{{ hotel.name }}">
+        <img class="thumb-item" src="{{ img.image.url }}" alt="{{ hotel.name }}" data-caption="{{ img.image.name }}" data-index="{{ forloop.counter0 }}">
     {% endfor %}
 </div>
+{% endif %}
 
 {% for room in rooms %}
 <div class="card room-card">
+    <div class="room-left">
+        <div class="room-head">
+            <h3 class="room-title">{{ room.name }}</h3>
+            <p class="room-meta">{{ room.room_size_sqft }} sqft • {{ room.total_rooms }} rooms</p>
+        </div>
 
-    <h3>{{ room.name }}</h3>
-    <p>{{ room.room_size_sqft }} sqft • {{ room.total_rooms }} rooms</p>
-
-    <div class="amenities">
-        {% for amenity in room.amenities.all %}
-            <span>{{ amenity.name }}</span>
-        {% empty %}
-            <span>No amenities listed</span>
-        {% endfor %}
-    </div>
-
-    <h4>Choose Plan</h4>
-
-    {% for plan in room.plans.all %}
-        <div class="plan-row">
-            <div>
-                <strong>{{ plan.get_plan_type_display }}</strong><br>
-                <small>₹ {{ plan.price }} / night</small>
+        <div class="room-body">
+            <div class="room-thumb-wrap">
+                {% if hotel.images.all %}
+                    <img class="room-thumb" src="{{ hotel.images.all.0.image.url }}" alt="{{ room.name }}">
+                {% else %}
+                    <div class="room-thumb placeholder"></div>
+                {% endif %}
             </div>
 
-            <a class="btn-primary"
-               href="{% url 'review_booking' %}?plan_id={{ plan.id }}&check_in={{ check_in }}&check_out={{ check_out }}">
-               Select
-            </a>
+            <div class="room-info">
+                <div class="amenities">
+                    {% for amenity in room.amenities.all %}
+                        <span class="amenity-item">{{ amenity.name }}</span>
+                    {% empty %}
+                        <span class="muted">No amenities listed</span>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-    {% empty %}
-        <p class="muted">No plans configured</p>
-    {% endfor %}
+    </div>
+
+    <div class="room-right">
+        <h4 class="choose-plan">Choose Plan</h4>
+        <div class="plan-grid">
+        {% for plan in room.plans.all %}
+            <div class="plan-box">
+                <div class="plan-title">{{ plan.get_plan_type_display }}</div>
+                <div class="plan-price">₹ {{ plan.price }} <span class="per-night">/ night</span></div>
+                <a class="btn-primary btn-select"
+                   href="{% url 'review_booking' %}?plan_id={{ plan.id }}&check_in={{ check_in }}&check_out={{ check_out }}">
+                   Select
+                </a>
+            </div>
+        {% empty %}
+            <p class="muted">No plans configured</p>
+        {% endfor %}
+        </div>
+    </div>
 
 </div>
 {% endfor %}
