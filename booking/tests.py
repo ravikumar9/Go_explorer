@@ -5,6 +5,7 @@ from datetime import date
 
 from .models import Hotel, RoomType, RoomPlan, Coupon, Booking
 from django.core.exceptions import ValidationError
+from .admin import CouponForm, BookingForm
 
 
 class CouponViewTests(TestCase):
@@ -112,3 +113,54 @@ class EndToEndBookingFlowTests(TestCase):
 
         self.assertEqual(booking.discount_amount, expected_discount)
         self.assertEqual(booking.amount, expected_payable)
+
+
+class AdminFormTests(TestCase):
+    def test_coupon_form_duplicate_same_hotel_invalid(self):
+        h = Hotel.objects.create(name="H1", city="C", address="", rating=3, is_active=True)
+        Coupon.objects.create(code="DUP", hotel=h, discount_type="FLAT", discount_value=20, is_active=True)
+
+        form = CouponForm(data={
+            'code': 'DUP',
+            'hotel': h.id,
+            'discount_type': 'FLAT',
+            'discount_value': 10,
+            'is_active': True,
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('A coupon with this code already exists', str(form.errors))
+
+    def test_coupon_form_same_code_different_hotel_valid(self):
+        h1 = Hotel.objects.create(name="H1", city="C", address="", rating=3, is_active=True)
+        h2 = Hotel.objects.create(name="H2", city="C2", address="", rating=4, is_active=True)
+        Coupon.objects.create(code="SHARE", hotel=h1, discount_type="FLAT", discount_value=30, is_active=True)
+
+        form = CouponForm(data={
+            'code': 'SHARE',
+            'hotel': h2.id,
+            'discount_type': 'FLAT',
+            'discount_value': 15,
+            'is_active': True,
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_booking_form_date_validation(self):
+        rt_h = Hotel.objects.create(name="BH", city="C3", address="", rating=3, is_active=True)
+        rt = RoomType.objects.create(hotel=rt_h, name="R")
+        rp = RoomPlan.objects.create(room_type=rt, plan_type="ROOM_ONLY", price=Decimal('100.00'))
+
+        # invalid dates
+        form = BookingForm(data={
+            'room_plan': rp.id,
+            'guest_name': 'Bob',
+            'guest_email': 'b@b.com',
+            'guest_phone': '999',
+            'check_in': '2026-06-10',
+            'check_out': '2026-06-05',
+            'coupon_code': '',
+            'discount_amount': '0',
+            'amount': '100.00',
+            'status': 'PENDING_PAYMENT',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('`check_out` must be after `check_in`', str(form.errors))
