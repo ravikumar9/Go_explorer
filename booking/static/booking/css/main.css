@@ -384,8 +384,11 @@ html, body { overflow-x: hidden; }
 }
 
 .room-right {
-    flex: 0 0 40%;
+    flex: 0 0 36%;
     text-align: right;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
 }
 
 .room-head .room-title {
@@ -426,9 +429,19 @@ html, body { overflow-x: hidden; }
 .plan-grid {
     display:flex;
     gap:12px;
-    justify-content:flex-end;
+    justify-content:center;
     flex-wrap:wrap;
 }
+
+.plans-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.04);
+    min-width: 220px;
+}
+
+.room-right .plans-container .plan-box { text-align: center; }
 
 .plan-box {
     background:#ffffff;
