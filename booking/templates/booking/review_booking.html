@@ -55,12 +55,15 @@
                 <label class="field"><input name="email" placeholder="Email *" required></label>
                 <label class="field"><input name="phone" placeholder="Mobile Number *" required></label>
 
-                <label class="field"><input name="coupon_code" placeholder="Coupon Code (optional)"></label>
-
                 <div class="coupon-action">
                     <input id="coupon_input" name="coupon_code" placeholder="Coupon Code (optional)">
                     <button type="button" id="apply_coupon" class="btn-small">Apply</button>
+                    <div id="coupon_spinner" class="spinner" aria-hidden="true" style="display:none;margin-left:8px"></div>
                     <div id="coupon_message" class="muted" style="margin-top:8px"></div>
+                    <div id="applied_coupon" style="margin-top:10px;display:none">
+                        <span class="badge applied">Applied <strong id="applied_code"></strong> — <span id="applied_discount"></span></span>
+                        <button type="button" id="remove_coupon" class="btn-small" style="margin-left:8px">Remove</button>
+                    </div>
                 </div>
 
                 <label class="checkbox"><input type="checkbox" required> I agree to Terms & Conditions</label>
@@ -79,16 +82,27 @@
     const msg = document.getElementById('coupon_message');
     const totalEl = document.querySelector('.price-breakdown .row.total span:last-child');
     const totalHidden = document.querySelector('input[name="total"]');
+    const spinner = document.getElementById('coupon_spinner');
+    const appliedBox = document.getElementById('applied_coupon');
+    const appliedCodeEl = document.getElementById('applied_code');
+    const appliedDiscountEl = document.getElementById('applied_discount');
+    const removeBtn = document.getElementById('remove_coupon');
+
+    const originalTotal = totalHidden.value;
 
     function setMessage(text, err){
         msg.textContent = text;
         msg.style.color = err ? 'crimson' : '#374151';
     }
 
-    applyBtn.addEventListener('click', function(){
-        const code = input.value.trim();
-        if(!code){ setMessage('Enter a coupon code first', true); return; }
+    function showSpinner(show){
+        spinner.style.display = show ? 'inline-block' : 'none';
+        applyBtn.disabled = show;
+        input.disabled = show;
+    }
 
+    function applyCoupon(code){
+        showSpinner(true);
         const url = new URL("{% url 'validate_coupon' %}", window.location.origin);
         url.searchParams.set('code', code);
         url.searchParams.set('plan_id', '{{ plan.id }}');
@@ -97,17 +111,36 @@
         fetch(url)
             .then(r => r.json().then(j => ({ok: r.ok, status: r.status, json: j})))
             .then(({ok, status, json}) => {
+                showSpinner(false);
                 if(!ok){
                     if(status === 404) setMessage('Coupon not found or inactive', true);
                     else setMessage('Invalid coupon or total', true);
                     return;
                 }
-                // update totals
+                // update totals and UI
                 totalEl.textContent = '₹ ' + json.payable;
                 totalHidden.value = json.payable;
                 setMessage('Applied: ' + json.code + ' — Discount ₹' + json.discount, false);
+                appliedCodeEl.textContent = json.code;
+                appliedDiscountEl.textContent = '₹' + json.discount;
+                appliedBox.style.display = 'block';
             })
-            .catch(err => setMessage('Error validating coupon', true));
+            .catch(err => { showSpinner(false); setMessage('Error validating coupon', true); });
+    }
+
+    applyBtn.addEventListener('click', function(){
+        const code = input.value.trim();
+        if(!code){ setMessage('Enter a coupon code first', true); return; }
+        applyCoupon(code);
+    });
+
+    removeBtn.addEventListener('click', function(){
+        // restore totals and clear coupon
+        totalEl.textContent = '₹ ' + originalTotal;
+        totalHidden.value = originalTotal;
+        input.value = '';
+        appliedBox.style.display = 'none';
+        setMessage('Coupon removed', false);
     });
 })();
 </script>
