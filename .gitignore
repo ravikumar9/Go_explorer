@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+
+# SQLite
+db.sqlite3
+
+# Media uploads
+media/
+
+# Byte-compiled / distribution
+build/
+dist/
+*.egg-info/
+
+# Idea
+.idea/
+
+# Optional: ignore app migrations if you prefer to keep them out of VCS
+# WARNING: removing migrations from VCS can cause issues for new developers.
+# Uncomment the following line only if you intentionally want to ignore migrations
+# booking/migrations/

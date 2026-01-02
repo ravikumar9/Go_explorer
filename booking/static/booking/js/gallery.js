@@ -85,25 +85,47 @@ document.addEventListener('DOMContentLoaded', function () {
         el.addEventListener('mouseleave', ()=>{ if(autoplay) startTimer(); });
     });
 
-    // Play/Pause control: add a small button inside thumb-strip (if present) to enable autoplay
+    // Play/Pause control: add small buttons inside the global thumb-strip and inside each room card
     const thumbStrip = document.querySelector('.thumb-strip');
-    let playBtn = null;
-    if (thumbStrip) {
-        playBtn = document.createElement('button');
-        playBtn.className = 'play-btn';
-        playBtn.setAttribute('aria-pressed','false');
-        playBtn.textContent = 'Play';
-        playBtn.style.marginLeft = '8px';
-        thumbStrip.appendChild(playBtn);
+    const roomRights = Array.from(document.querySelectorAll('.room-right'));
+    const playButtons = [];
 
-        playBtn.addEventListener('click', function(e){
-            e.preventDefault();
-            autoplay = !autoplay;
-            playBtn.textContent = autoplay ? 'Pause' : 'Play';
-            playBtn.setAttribute('aria-pressed', String(autoplay));
-            if (autoplay) startTimer(); else stopTimer();
+    function updatePlayButtons() {
+        playButtons.forEach(pb => {
+            pb.textContent = autoplay ? 'Pause' : 'Play';
+            pb.setAttribute('aria-pressed', String(autoplay));
         });
     }
+
+    // create a play button element
+    function createPlayButton() {
+        const btn = document.createElement('button');
+        btn.className = 'play-btn';
+        btn.setAttribute('aria-pressed','false');
+        btn.textContent = 'Play';
+        btn.style.marginLeft = '8px';
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            autoplay = !autoplay;
+            if (autoplay) startTimer(); else stopTimer();
+            updatePlayButtons();
+        });
+        return btn;
+    }
+
+    if (thumbStrip) {
+        const tb = createPlayButton();
+        thumbStrip.appendChild(tb);
+        playButtons.push(tb);
+    }
+
+    // add play button inside each room-right so controls are available per-room
+    roomRights.forEach(rr => {
+        const pb = createPlayButton();
+        // place the button just before the plans container (so it appears visually next to plans)
+        rr.insertBefore(pb, rr.querySelector('.plans-container') || rr.lastChild);
+        playButtons.push(pb);
+    });
 
     btnClose.addEventListener('click', hide);
     overlay.addEventListener('click', function (e) { if (e.target === overlay) hide(); });

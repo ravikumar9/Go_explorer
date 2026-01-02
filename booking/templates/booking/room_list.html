@@ -43,7 +43,8 @@
 
     <div class="room-right">
         <h4 class="choose-plan">Choose Plan</h4>
-        <div class="plan-grid">
+        <div class="plans-container">
+            <div class="plan-grid">
         {% for plan in room.plans.all %}
             <div class="plan-box">
                 <div class="plan-title">{{ plan.get_plan_type_display }}</div>
@@ -56,6 +57,7 @@
         {% empty %}
             <p class="muted">No plans configured</p>
         {% endfor %}
+            </div>
         </div>
     </div>
 
